@@ -9,8 +9,7 @@
   <include name="openvela.xml"/>
 
   <project path="contest2026_224_quanyuanzhirendui" name="contest2026_224_quanyuanzhirendui">
-    <linkfile src="app/hello_app" dest="packages/demos/contest2026_224_hello_app"/>
-    <linkfile src="quickapp/hello_quickapp" dest="packages/apps/contest2026_224_hello_quickapp"/>
-    <linkfile src="board/contest_board" dest="vendor/openvela/boards/contest2026_224_board"/>
+    <!-- 新硬件适配: ATK-DNN647 (STM32N6) board porting -->
+    <linkfile src="board/atk-dnn647" dest="nuttx/boards/arm/stm32n6/atk-dnn647"/>
   </project>
 </manifest>

@@ -1,36 +1,62 @@
-# contest2026_224_quanyuanzhirendui
+# ATK-DNN647 (STM32N6) 新硬件适配
 
-👋 欢迎参加 **2026 首届 openvela AI 硬件开发者大赛**！
+## 一、作品简介
 
-这是组委会为你的队伍创建的**专属参赛仓库**（本仓为样例/模板，队伍编号 `224`；你看到的将是你自己的 `contest2026_<编号>_<队伍名>`）。比赛期间，你的全部参赛代码、打包产物与 AI Coding 日志都提交到这里。
+将 openvela (NuttX) 实时操作系统移植到 **正点原子 ATK-DNN647** 开发板上，基于 STM32N647X0 芯片。该芯片无内部 Flash，采用外部 XSPI NOR Flash (MX25UM25645G, 32MB) 方案。本作品实现了完整的启动链：FSBL → XSPI Flash 初始化 → XIP 应用执行，并提供了一键构建烧录工具。
 
-> 本仓既是「代码仓」，又内置了一键拉取整套 openvela 工程的 `repo` 清单（manifest）。你只需跟它打交道，**自始至终只动一个文件夹**。
+**亮点：**
+- 完整的 FSBL (First Stage Boot Loader) 实现，包括 VDD 电压域配置、SMPS 电源管理、XSPI Flash DTR 模式切换
+- XIP (Execute-In-Place) 运行模式，应用直接从外部 Flash 执行，节省 SRAM
+- 三种构建配置：FSBL / NSH (SRAM) / NSH-XIP (Flash)
+- 一键烧录脚本，支持 FSBL 签名、构建、烧录全流程
 
----
+## 二、选题方向
 
-## 一、先读这些官方文档
+**新硬件适配**
 
-**通用（所有赛道必读）：**
+STM32N6 是 ST 最新推出的高性能 Cortex-M55 MCU，主频可达 800MHz，集成 NPU，但无内部 Flash，启动方案与传统 STM32 差异较大。将 openvela 移植到该平台，为后续 AI 应用（如 YOLO 推理）提供基础 OS 支撑。
 
-| 文档                                                                                                                                     | 用途                                           |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| [《大赛总览》](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/contest_overview.md)                        | 赛道、流程、评分、资源，建议先通读             |
-| [《参赛代码提交指南》](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/code_submission_guide.md)           | 仓库获取、提交流程、时间与权限（**以此为准**） |
-| [《AI Coding 日志归集与提交手册》](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/ai_coding_log_guide.md) | 如何导出 AI 对话日志并提交到 `logs/`           |
+## 三、目录结构
 
-**按你的赛道选读（三选一）：**
+```
+board/atk-dnn647/
+├── Kconfig                    # 板级 Kconfig 配置（FSBL / XIP 开关）
+├── CMakeLists.txt             # CMake 构建入口
+├── configs/
+│   ├── fsbl/defconfig         # FSBL 最小配置（无 OS 功能）
+│   ├── nsh/defconfig          # NSH 终端配置（SRAM 运行，调试用）
+│   ├── nsh_xip/defconfig      # NSH XIP 配置（Flash 运行，正式使用）
+│   └── leds/defconfig         # LED 测试配置
+├── scripts/
+│   ├── Make.defs              # 链接脚本选择逻辑
+│   ├── fsbl.ld                # FSBL 链接脚本（SRAM2 @ 0x34180400）
+│   ├── flash_xip.ld           # XIP 链接脚本（Flash @ 0x70080000）
+│   └── flash.ld               # DEV 模式链接脚本（SRAM @ 0x34000400）
+├── include/
+│   └── board.h                # 板级头文件（时钟、LED、GPIO 定义）
+├── src/
+│   ├── fsbl_main.c            # FSBL 主程序（VDD/XSPI/Flash 初始化 + 跳转）
+│   ├── stm32_boot.c           # NuttX 启动入口（XIP 模式 LED 闪烁验证）
+│   ├── stm32_bringup.c        # 板级后期初始化
+│   ├── stm32_autoleds.c       # 自动 LED 控制（OS 事件指示）
+│   ├── stm32_userleds.c       # 用户 LED 控制
+│   ├── dnn647.h               # 板级私有头文件
+│   ├── CMakeLists.txt         # 源文件 CMake 配置
+│   └── Make.defs              # 源文件 Make 配置
+└── tools/
+    ├── flash_dnn647.sh        # 一键构建烧录脚本
+    └── README.md              # 工具使用说明
+```
 
-| 赛道                  | 教程导航                                                                                                                                                 |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 快应用 / 手表应用创新 | [快应用教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/quickapp/quickapp_guide_index.md)                         |
-| AI 硬件产品创新       | [AI 硬件赛道教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/ai_hardware/ai_hardware_guide_index.md)              |
-| 新硬件适配            | [新硬件适配赛道教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/hardware_porting/hardware_porting_guide_index.md) |
+## 四、运行方式
 
----
+### 前置条件
 
-## 二、第一步：拉取完整工程
+- ARM 工具链：`arm-none-eabi-gcc`（openvela 自带 prebuilts）
+- STM32CubeProgrammer（用于烧录和签名）
+- ATK-DNN647 开发板 + SWD 调试器
 
-用组委会提供的命令一键拉取「openvela 全量源码 + 你的专属仓」：
+### 步骤 1：拉取完整工程
 
 ```bash
 repo init -u https://github.com/open-vela/contest2026_224_quanyuanzhirendui \
@@ -38,111 +64,70 @@ repo init -u https://github.com/open-vela/contest2026_224_quanyuanzhirendui \
 repo sync -c -j8
 ```
 
-同步后，你的整个仓库位于工作区的 `contest2026_224_quanyuanzhirendui/`，openvela 全量源码在外层（`nuttx/`、`apps/`、`packages/`、`vendor/` 等）。
-
----
-
-## 三、第二步：在哪里写代码
-
-**只在自己的仓目录 `contest2026_224_quanyuanzhirendui/` 里开发。** 不同作品形态放在对应子目录，manifest 会通过 `<linkfile>` 把它们**软链**到 openvela 编译树该在的位置——你不用手动 copy：
-
-| 作品形态 | 你的代码放这里             | 系统自动映射到                                 |
-| -------- | -------------------------- | ---------------------------------------------- |
-| 应用     | `app/hello_app/`           | `packages/demos/contest2026_224_hello_app`     |
-| 快应用   | `quickapp/hello_quickapp/` | `packages/apps/contest2026_224_hello_quickapp` |
-| 板级适配 | `board/contest_board/`     | `vendor/openvela/boards/contest2026_224_board` |
-
-> 用不到的形态目录可以删掉；新增作品时按同样规则加子目录，并在 `contest2026_224_quanyuanzhirendui.xml` 里补一条 `<linkfile>` 映射即可。**生产仓库（packages/nuttx/vendor 等）零改动。**
-
-建议仓库目录约定（便于评委定位）：
-
-```text
-app/ | quickapp/ | board/   # 你的作品代码
-logs/                       # AI Coding 日志（主动导出后提交，格式见 logs/README.md）
-README.md                   # 作品说明（提交前请改成你自己的，见第六节）
-```
-
-> 仓内附带了一个 `.gitignore.example`，给出了**编译产物**等不需要进仓的文件示例。如需启用，`cp .gitignore.example .gitignore` 后按需增删即可。**注意 `logs/` 下最终导出的 AI Coding 日志必须提交，不要忽略。**
->
-> `logs/` 的目录结构与提交格式见 [logs/README.md](logs/README.md)。
-
----
-
-## 四、第三步：编译与运行
-
-编译/运行步骤随作品形态不同而不同，请参考你所在赛道的教程导航：
-
-- 快应用 / 手表应用：[快应用教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/quickapp/quickapp_guide_index.md)（含模拟器与开发板部署）。
-- AI 硬件产品创新：[AI 硬件赛道教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/ai_hardware/ai_hardware_guide_index.md)（环境搭建、编译烧录、Skill 开发）。
-- 新硬件适配：[新硬件适配赛道教程导航](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/hardware_porting/hardware_porting_guide_index.md)（BSP 移植、最小 NSH 基线）。
-
-子目录已通过 manifest 中的 `<linkfile>` 软链进 openvela 编译树，因此构建在 openvela 工作区**根目录**（即你这个仓的上一级）进行。openvela 使用 `build.sh` 作为统一入口，接收一个 **board config 路径**作为参数：
+### 步骤 2：构建并烧录 FSBL
 
 ```bash
-# 进入 openvela 工作区根目录（你的仓的上一级）
-cd ..
-
-# 通用语法：第一个参数是 board config 路径，第二个参数可以是 menuconfig / distclean 等
-./build.sh <board-config-path> [menuconfig|distclean] [-j8]
+cd nuttx
+./boards/arm/stm32n6/atk-dnn647/tools/flash_dnn647.sh fsbl
 ```
 
-> 具体的 board config 路径、目标产物、模拟器/真机部署方式请以你所在赛道的教程导航为准。本仓 `app/` `quickapp/` `board/` 三个示例骨架对应的 Kconfig 选项可通过 `menuconfig` 启用。
+该命令会：
+1. 配置 FSBL 最小配置
+2. 编译生成 `nuttx.bin`
+3. 使用 STM32_SigningTool 签名
+4. 通过 SWD 烧录到 0x70000000
 
----
+### 步骤 3：构建并烧录 NuttX 应用 (XIP)
 
-## 五、第四步：提交作品
-
-1. **fork** 你的专属仓 → 开发 → `git commit` 并推送 → 向专属仓发起 **Pull Request**，可**自行 review 并合入**（无需等组委会）。
-2. **AI Coding 日志**：与 AI 工具的对话会自动记录到本机 staging（不会自动上传），需你**主动导出/打包**选定会话到仓内 `logs/` 目录后一并提交。详见[《AI Coding 日志归集与提交手册》](https://github.com/open-vela/docs/blob/dev-ai-contest-2026/zh-cn/contest_2026/ai_coding_log_guide.md)。
-3. 若需改动 **nuttx 等公共仓库**，不在本仓改，而是 fork 对应公共仓、以 PR 提交到 `dev-ai-contest-2026` 分支，由组委会 review 后合入。
-
-> ⏰ **提交作品截止：9 月 20 日**。截止后统一收回 push 权限，仍可查看 / clone。
->
-> 获奖后再按要求将作品 PR 至 openvela 上游对应仓库（走标准 PR + CI 流程）。
-
-### 关于 PR 与 CLA
-
-- 本仓所有改动通过 **Pull Request** 合入（分支保护强制，可自行合入自己的 PR）。
-- 首次贡献需在[**官网签署 CLA**](https://openvela.com/#/community/cla)；PR 上会自动跑 `cla/signature` 检查，在官网签署成功后，在 PR 评论 `/check-cla` 复检即可通过。
-
----
-
-## 六、提交前：把本 README 改成你的作品说明
-
-本文件目前是组委会给的**使用说明书**。**作品提交前，请把它替换成你自己作品的说明**，方便评委快速了解你做了什么、怎么跑起来。建议至少包含以下内容：
-
-```markdown
-# <你的作品名>
-
-## 一、作品简介
-<一句话/一段话说明这个作品是什么、解决什么问题、亮点在哪>
-
-## 二、选题方向
-<快应用 / 手表应用创新 ｜ AI 硬件产品创新 ｜ 新硬件适配 ｜ 自定方向，并简述理由>
-
-## 三、目录结构
-<列出你这个仓里各目录/文件的作用，例如：>
-- `app/xxx/`        — <说明>
-- `board/xxx/`      — <说明>
-- `quickapp/xxx/`   — <说明>
-- `logs/`           — AI Coding 日志
-- `docs/` 或其他    — <说明>
-
-## 四、运行方式
-<拉取工程后，如何编译、烧录/部署、运行的完整步骤；最好能让评委照着一步步复现>
-
-## 五、AI Coding 使用说明
-<说明本作品如何借助 AI 辅助开发：
-- 在需求拆解 / 方案设计 / 编码 / 调试 / 文档等环节如何与 AI 协作；
-- AI 对开发效率或质量带来的实际帮助。
-完整对话日志见 logs/ 目录>
+```bash
+./boards/arm/stm32n6/atk-dnn647/tools/flash_dnn647.sh app
 ```
 
-> 提示：将会根据「作品本身 + 你的 README 说明 + `logs/` 里的 AI Coding 日志」来理解和评估你的作品，README 写清楚很重要。
+### 步骤 4：运行
 
----
+复位开发板，FSBL 会：
+1. LED 闪烁指示启动进度
+2. 初始化 XSPI Flash（切换到 DTR 模式）
+3. 启用 Memory-Mapped 模式
+4. 跳转到 0x70080000 执行 NuttX 应用
 
-## 附：仓库命名规范
+串口连接 PE5(TX)/PE6(RX)，115200 baud，可进入 NSH 终端。
 
-`contest2026_<编号>_<队伍名>` — 编号三位零填充；队名 slug（全小写、英文/拼音、连字符）。例：`contest2026_224_quanyuanzhirendui`。
-（仓库由组委会统一创建，**每队仅一个仓**，无需自行命名。）
+### 一键全部构建烧录
+
+```bash
+./boards/arm/stm32n6/atk-dnn647/tools/flash_dnn647.sh all
+```
+
+## 五、Flash 布局
+
+| 组件 | 地址 | 大小 | 说明 |
+|------|------|------|------|
+| FSBL | 0x70000000 | 512KB | 第一阶段启动加载器 |
+| NuttX App | 0x70080000 | 31.5MB | NuttX 应用程序 (XIP) |
+
+## 六、启动流程
+
+```
+Boot ROM (芯片内置)
+    ↓ 加载 FSBL 到 SRAM2
+FSBL (0x34180400)
+    ↓ 配置 VDD 电压域
+    ↓ 配置 SMPS 电源
+    ↓ 初始化 XSPI Flash (DTR 模式)
+    ↓ 启用 Memory-Mapped (XIP)
+    ↓ 跳转到应用
+NuttX App (0x70080000, XIP from Flash)
+    ↓ NSH 终端就绪
+```
+
+## 七、AI Coding 使用说明
+
+本作品在以下环节借助 AI 辅助开发：
+
+- **方案设计**：与 AI 讨论 STM32N6 启动流程、XSPI Flash 配置方案、DTR 模式切换时序
+- **编码实现**：FSBL 核心代码（fsbl_main.c）在 AI 辅助下完成寄存器级操作、XSPI 驱动编写
+- **调试排错**：通过 AI 分析链接脚本配置、内存布局问题、Flash 命令时序
+- **文档生成**：README、工具说明文档由 AI 协助编写
+
+完整对话日志见 `logs/` 目录。

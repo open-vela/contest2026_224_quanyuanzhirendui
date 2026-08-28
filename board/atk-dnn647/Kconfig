@@ -1,0 +1,24 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+if ARCH_BOARD_ATK_DNN647
+
+config FSBL
+	bool "Build FSBL (First Stage Boot Loader)"
+	default n
+	---help---
+		Build the FSBL for the ATK-DNN647 board. The FSBL runs from
+		SRAM2 at 0x34180400, initializes VDD voltage domains and
+		XSPI flash, then jumps to the application at 0x70080000.
+
+config STM32N6_XIP
+	bool "Build application for XIP (Execute-In-Place)"
+	default n
+	depends on !FSBL
+	---help---
+		Build the application to run from external flash via XIP
+		at 0x70080000. Requires the FSBL to be running first.
+
+endif
