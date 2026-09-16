@@ -1,8 +1,86 @@
 {
   "schema_version": "1.0",
   "team_id": "contest2026_224_quanyuanzhirendui",
-  "github_login": "<YOUR_GITHUB_LOGIN>",
-  "generator": "manual",
-  "sessions": [],
-  "updated_at": "2026-08-28T00:00:00.000000+00:00"
+  "github_login": "Mrpli",
+  "generator": "claude-code",
+  "sessions": [
+    {
+      "session_id": "c690f0dd-f141-4d6c-880e-27aa43b326b3",
+      "tool": "claude-code",
+      "started_at": "2026-08-21T09:45:00.000Z",
+      "description": "openvela工程分析，stm32n657支持",
+      "file_path": "logs/mrpil/2026-08-21/claude-code__c690f0dd.jsonl"
+    },
+    {
+      "session_id": "4e5d5a04-986e-4343-ae7e-1f641f6267d8",
+      "tool": "claude-code",
+      "started_at": "2026-08-21T09:45:00.000Z",
+      "description": "nucleo-n657x0-q板卡编译配置",
+      "file_path": "logs/mrpil/2026-08-21/claude-code__4e5d5a04.jsonl"
+    },
+    {
+      "session_id": "2d4ac909-674d-4c60-84e6-9f60f265e8c3",
+      "tool": "claude-code",
+      "started_at": "2026-08-21T23:42:00.000Z",
+      "description": "nucleo-n657x0-q FSBL外部flash配置",
+      "file_path": "logs/mrpil/2026-08-21/claude-code__2d4ac909.jsonl"
+    },
+    {
+      "session_id": "af1db2f5-1e19-48e2-900c-f99199daed68",
+      "tool": "claude-code",
+      "started_at": "2026-08-22T17:15:00.000Z",
+      "description": "比赛提交指南讲解",
+      "file_path": "logs/mrpil/2026-08-22/claude-code__af1db2f5.jsonl"
+    },
+    {
+      "session_id": "6ad13cb3-6473-4031-a8c5-8ad621057323",
+      "tool": "claude-code",
+      "started_at": "2026-08-22T17:19:00.000Z",
+      "description": "nucleo-n657x0-q FSBL配置编写",
+      "file_path": "logs/mrpil/2026-08-22/claude-code__6ad13cb3.jsonl"
+    },
+    {
+      "session_id": "77962040-76db-4fa3-a860-1a4d86c8a3f2",
+      "tool": "claude-code",
+      "started_at": "2026-08-24T14:00:00.000Z",
+      "description": "contest仓库初始化",
+      "file_path": "logs/mrpil/2026-08-24/claude-code__77962040.jsonl"
+    },
+    {
+      "session_id": "1c7e06df-6347-408c-aa06-5c1cd5006c44",
+      "tool": "claude-code",
+      "started_at": "2026-08-24T18:30:00.000Z",
+      "description": "openvela环境配置",
+      "file_path": "logs/mrpil/2026-08-24/claude-code__1c7e06df.jsonl"
+    },
+    {
+      "session_id": "6bf0c358-b158-4bd2-a400-153fc058a8d7",
+      "tool": "claude-code",
+      "started_at": "2026-08-26T17:46:00.000Z",
+      "description": "nucleo-n657x0-q FSBL guide文档",
+      "file_path": "logs/mrpil/2026-08-26/claude-code__6bf0c358.jsonl"
+    },
+    {
+      "session_id": "9c1cc9de-2c87-472a-bd93-0f476d479b60",
+      "tool": "claude-code",
+      "started_at": "2026-08-27T20:09:00.000Z",
+      "description": "ATK-DNN647 FSBL适配（核心开发）",
+      "file_path": "logs/mrpil/2026-08-27/claude-code__9c1cc9de.jsonl"
+    },
+    {
+      "session_id": "440ab6b1-2cf8-4870-84f1-ecd469b17891",
+      "tool": "claude-code",
+      "started_at": "2026-08-28T22:35:00.000Z",
+      "description": "比赛作品提交整理",
+      "file_path": "logs/mrpil/2026-08-28/claude-code__440ab6b1.jsonl"
+    },
+    {
+      "session_id": "465985fd-cfcd-4757-8c4c-74ac1555caca",
+      "tool": "claude-code",
+      "started_at": "2026-09-10T22:26:00.000Z",
+      "description": "日志导出与最终提交",
+      "file_path": "logs/mrpil/2026-09-10/claude-code__465985fd.jsonl"
+    }
+  ],
+  "updated_at": "2026-09-10T00:00:00.000000+00:00"
 }
